@@ -1,5 +1,16 @@
-# -*- coding: ascii -*-
-from __future__ import print_function
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+'''
+@File    :   javadocset.py    
+@Desc    :   Convert Javadoc HTML to Dash/Zeal docset - Python port of https://github.com/Kapeli/javadocset
+@Project :   javadocset
+@Contact :   i@zjh567.cn
+@License :   (C)Copyright 2018-2020, ZJH567.CN
+@WebSite :   www.zjh567.cn
+@Modify Time           @Modify       @Version
+------------           -------        --------
+2020/02/18 17:27       zjh567         1.0         
+'''
 import collections
 import os
 import os.path
@@ -8,8 +19,6 @@ import shutil
 import sqlite3
 import sys
 from bs4 import BeautifulSoup, Tag
-
-__author__ = 'ethan'
 
 
 def _execute(cursor, *args):
@@ -35,7 +44,7 @@ class Database(object):
         self._freeze_cursor = False
         self._table_names = set()
         self._tables = {}
-        self._tables_view_keys = self._tables.viewkeys()
+        self._tables_view_keys = self._tables.keys()
         #if overwrite:
         #    self._tables_to_replace = ['theme']
         #self.execute('''CREATE TABLE IF NOT EXISTS theme (selector text UNIQUE);''')
@@ -283,7 +292,6 @@ class DHIndexer(object):
 
     def __init__(self):
         self.apiPath = None  # type: str
-        self.workingDir = None  # type: str
         self.docsetName = None  # type: str
         self.docsetPath = None  # type: str
 
@@ -303,20 +311,20 @@ class DHIndexer(object):
         if (len(arguments) == 2) and (arguments[1] == "--help"):
             self.printUsage()
             sys.exit(0)
-        if len(arguments) != 3:
-            print("Error: too {} arguments".format("many" if (len(arguments) > 3) else "few"))
+        if len(arguments) != 4:
+            print("Error: too {} arguments".format("many" if (len(arguments) > 4) else "few"))
             self.printUsage()
             sys.exit(1)
         print("Creating docset structure...")
         _name = arguments[1]  # type: str
         _path = arguments[2]  # type: str
-        self.workingDir = os.getcwd()
+        _target = arguments[3] # type: str
         if not os.path.isabs(_path):
-            _path = os.path.join(self.workingDir, _path)
+            _path = os.path.join(_target, _path)
         _path = os.path.abspath(_path)
         self.apiPath = _path
         self.docsetName = _name
-        self.docsetPath = os.path.join(self.workingDir, "{}.docset".format(_name))
+        self.docsetPath = os.path.join(_target, "{}.docset".format(_name))
         self.contentsDir = os.path.join(self.docsetPath, "Contents")
         self.resourcesDir = os.path.join(self.contentsDir, "Resources")
         self.documentsDir = os.path.join(self.resourcesDir, "Documents")
@@ -410,7 +418,7 @@ class DHIndexer(object):
             nextPath = self.toIndex.popleft()  # type: str
             print("Indexing {}...".format(os.path.basename(nextPath)))
             with open(nextPath, 'r') as fdIn:
-                self.soup = BeautifulSoup(fdIn.read())
+                self.soup = BeautifulSoup(fdIn.read(), 'lxml')
                 self.soupFn = nextPath
             self.parseEntries()
             self.step()
@@ -487,10 +495,12 @@ class DHIndexer(object):
 
     @staticmethod
     def printUsage():
-        print("Usage: javadocset <docset name> <javadoc API folder>\n"
+        print("Usage: javadocset <docset name> <javadoc API folder> <docset target folder>\n"
               "<docset name> - anything you want\n"
-              "<javadoc API folder> - the path of the javadoc API folder you want to index")
+              "<javadoc API folder> - the path of the javadoc API folder you want to index\n"
+              "<docset target folder> - the folder of the docset you want to save")
 
 
 if __name__ == '__main__':
     DHIndexer()
+
