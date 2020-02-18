@@ -417,8 +417,8 @@ class DHIndexer(object):
         else:
             nextPath = self.toIndex.popleft()  # type: str
             print("Indexing {}...".format(os.path.basename(nextPath)))
-            with open(nextPath, 'r') as fdIn:
-                self.soup = BeautifulSoup(fdIn.read(), 'lxml')
+            with open(nextPath, 'rb') as fdIn:
+                self.soup = BeautifulSoup(fdIn.read().decode('utf-8'), 'lxml')
                 self.soupFn = nextPath
             self.parseEntries()
             self.step()
